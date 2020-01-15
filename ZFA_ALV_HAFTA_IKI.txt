@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Report  ZFA_ALV_HAFTA_IKI
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zfa_alv_hafta_iki.
+
+
+INCLUDE zfa_alv_hafta_iki_top.
+INCLUDE zfa_alv_hafta_iki_scrn.
+*INCLUDE ZFA_ALV_HAFTA_IKI_CLSS.
+INCLUDE zfa_alv_hafta_iki_f01.
+INCLUDE zfa_alv_hafta_iki_alv.
+
+
+
+AT SELECTION-SCREEN.
+
+
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM modify_screen.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+
+END-OF-SELECTION.
+  PERFORM display.

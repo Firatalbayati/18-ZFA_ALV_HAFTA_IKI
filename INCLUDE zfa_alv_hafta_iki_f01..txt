@@ -1,0 +1,334 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_ALV_HAFTA_IKI_F01
+*&---------------------------------------------------------------------*
+
+FORM modify_screen .    " dynamic radio bottun
+  LOOP AT SCREEN.
+    IF screen-group1 = 'UC1'.
+      IF r_satici = abap_true.
+        screen-invisible = '0'.
+        screen-active = '1'.
+      ELSE.
+        screen-invisible = '1'.
+        screen-active = '0'.
+      ENDIF.
+      MODIFY SCREEN.
+    ENDIF.
+    IF screen-group1 = 'UC2'.
+      IF r_msteri = abap_true.
+        screen-invisible = '0'.
+        screen-active = '1'.
+      ELSE.
+        screen-invisible = '1'.
+        screen-active = '0'.
+      ENDIF.
+      MODIFY SCREEN.
+    ENDIF.
+  ENDLOOP.
+ENDFORM.                    " MODIFY_SCREEN
+
+
+
+" 1.alv için selectler
+FORM get_data .
+
+" 1. radio button
+  IF r_satici EQ abap_true.
+    SELECT lb~bukrs
+           la~lifnr
+           la~name1
+           la~telfx
+           la~adrnr
+           la~telf1
+           la~stcd1
+           la~stcd2
+         INTO TABLE gt_outtab
+         FROM lfa1 AS la INNER JOIN
+              lfb1 AS lb ON la~lifnr EQ lb~lifnr
+     WHERE lb~bukrs IN s_bukrs
+     AND la~lifnr IN s_lifnr.
+
+    IF gt_outtab IS NOT INITIAL.
+      SELECT addrnumber
+             country
+             city1
+             street
+        FROM adrc INTO TABLE gt_adrc
+        FOR ALL ENTRIES IN gt_outtab
+        WHERE addrnumber EQ gt_outtab-adrnr.
+      SORT gt_adrc BY adrnr.
+
+
+      SELECT * FROM  zfa_t_stici_mstr INTO TABLE gt_rate
+        FOR ALL ENTRIES IN gt_outtab
+        WHERE partner EQ gt_outtab-number.
+      SORT gt_rate BY partner.
+    ENDIF.
+
+
+    LOOP AT gt_outtab ASSIGNING FIELD-SYMBOL(<fs_outtab>).      " gt_list isminde boş alanlar oluşturduk ve içine ..
+      APPEND INITIAL LINE TO gt_list ASSIGNING FIELD-SYMBOL(<fs_list>). " gt_outtab taki alanları doldurduk alv de görünsün diye
+      <fs_list>-bukrs  = <fs_outtab>-bukrs.
+      <fs_list>-number = <fs_outtab>-number.
+      <fs_list>-name1  = <fs_outtab>-name1.
+      <fs_list>-telfx  = <fs_outtab>-telfx.
+      <fs_list>-adrnr  = <fs_outtab>-adrnr.
+      <fs_list>-telf1  = <fs_outtab>-telf1.
+      <fs_list>-stcd1  = <fs_outtab>-stcd1.
+      <fs_list>-stcd2  = <fs_outtab>-stcd2.
+      READ TABLE gt_adrc ASSIGNING FIELD-SYMBOL(<fs_adrc>)
+        WITH KEY adrnr = <fs_list>-adrnr BINARY SEARCH.
+*      IF sy-subrc IS INITIAL.
+        <fs_list>-country  = <fs_adrc>-country.
+        <fs_list>-city1    = <fs_adrc>-city1.
+        <fs_list>-street   = <fs_adrc>-street.
+*      ENDIF.
+      <fs_list>-value = 'SATICI'.
+      READ TABLE gt_rate ASSIGNING FIELD-SYMBOL(<fs_rate>)
+        WITH KEY partner = <fs_list>-number.
+*      IF sy-subrc IS INITIAL.
+        <fs_list>-rating = <fs_rate>-rating.
+*      ENDIF.
+    ENDLOOP.
+  ENDIF.
+
+
+
+" 2. radio button
+  IF r_msteri EQ abap_true .
+    SELECT lb~bukrs
+           ka~kunnr
+           ka~name1
+           ka~telfx
+           ka~adrnr
+           ka~telf1
+           ka~stcd1
+           ka~stcd2
+         INTO TABLE gt_outtab
+         FROM kna1 AS ka INNER JOIN
+              lfb1 AS lb ON ka~lifnr EQ lb~lifnr
+     WHERE lb~bukrs IN s_bukrs
+     AND ka~kunnr IN s_kunnr.
+
+
+    IF gt_outtab IS NOT INITIAL.
+      SELECT addrnumber
+             country
+             city1
+             street
+        FROM adrc INTO TABLE gt_adrc
+        FOR ALL ENTRIES IN gt_outtab
+        WHERE addrnumber EQ gt_outtab-adrnr.
+      SORT gt_adrc BY adrnr.
+
+
+      SELECT * FROM  zfa_t_stici_mstr INTO TABLE gt_rate
+        FOR ALL ENTRIES IN gt_outtab
+        WHERE partner EQ gt_outtab-number.
+      SORT gt_rate BY partner.
+    ENDIF.
+
+
+    LOOP AT gt_outtab ASSIGNING FIELD-SYMBOL(<fs_outtab2>).      " gt_list isminde boş alanlar oluşturduk ve içine ..
+      APPEND INITIAL LINE TO gt_list ASSIGNING FIELD-SYMBOL(<fs_list2>). " gt_outtab taki alanları doldurduk alv de görünsün diye
+      <fs_list2>-bukrs  = <fs_outtab2>-bukrs.
+      <fs_list2>-number = <fs_outtab2>-number.
+      <fs_list2>-name1  = <fs_outtab2>-name1.
+      <fs_list2>-telfx  = <fs_outtab2>-telfx.
+      <fs_list2>-adrnr  = <fs_outtab2>-adrnr.
+      <fs_list2>-telf1  = <fs_outtab2>-telf1.
+      <fs_list2>-stcd1  = <fs_outtab2>-stcd1.
+      <fs_list2>-stcd2  = <fs_outtab2>-stcd2.
+      READ TABLE gt_adrc ASSIGNING FIELD-SYMBOL(<fs_adrc2>)
+        WITH KEY adrnr = <fs_list2>-adrnr BINARY SEARCH.
+*      IF sy-subrc IS INITIAL.
+        <fs_list2>-country  = <fs_adrc2>-country.
+        <fs_list2>-city1    = <fs_adrc2>-city1.
+        <fs_list2>-street   = <fs_adrc2>-street.
+*      ENDIF.
+      <fs_list2>-value = 'MÜŞTERI'.
+      READ TABLE gt_rate ASSIGNING FIELD-SYMBOL(<fs_rate2>)
+        WITH KEY partner = <fs_list2>-number.
+*      IF sy-subrc IS INITIAL.
+        <fs_list2>-rating = <fs_rate2>-rating.
+*      ENDIF.
+    ENDLOOP.
+  ENDIF.
+
+ENDFORM.                    " GET_DATA
+
+
+" 1.alv buttonları
+FORM set_pf_status USING rt_extab TYPE slis_t_extab.                      "******** YZDIR BUTTON*************
+  SET PF-STATUS 'STANDARD'.
+ENDFORM.
+
+FORM set_user_command USING r_ucomm TYPE sy-ucomm
+        fields  TYPE slis_selfield.
+  CASE r_ucomm.  "eğer bunu eklemesek whenleri karışrırır
+
+    WHEN 'KAYDET'.
+      PERFORM save_btn USING fields-tabindex.
+      fields-refresh = abap_true.   " ALV REFRESH
+
+    WHEN '&IC1'.   " satıra çift tıklandında
+      PERFORM second_alv USING fields-tabindex.
+
+    WHEN '&F03'.  " İKİ ALV ARASINDA GERİ DÖNE BİLMEK İÇİN(ERROR VERMESİN DİYE)
+   SET SCREEN 0. LEAVE SCREEN.
+  ENDCASE.
+ENDFORM.
+
+
+
+
+
+FORM save_btn USING fields-tabindex.
+
+  FREE gt_outtab. " SELDEN ÖNCE BUNU KULLANMASAK ALVDE GÖRÜNEN TÜM SATIRLARI EKRANA YAZAR , KISACA SEL ÇALIŞMAZ
+                  " FREE, dahili bir tablonun veya çalışma alanının hafızasını silmek için kullanılır.
+                  " Ne zaman bir iç masa veya çalışma alanı ilan ettiğimizde hepimiz biliyoruz, 8kb bellek tahsis edilecek.
+
+  LOOP AT gt_list ASSIGNING FIELD-SYMBOL(<fs_list>) WHERE sel EQ 'X'.            "************ SEL*************
+    APPEND INITIAL LINE TO gt_outtab ASSIGNING FIELD-SYMBOL(<fs_outtab>).        "*gt_list üste (gt_list TYPE TABLE OF gty_list)
+    <fs_outtab>-bukrs = <fs_list>-bukrs .
+    <fs_outtab>-number = <fs_list>-number.                                       "* gt_outtab  isminde boş alanlar oluşturduk ve içine ..
+    <fs_outtab>-name1 = <fs_list>-name1.                                         "* gt_list taki alanları doldurduk sel kullanmak için yazdık
+    <fs_outtab>-telfx = <fs_list>-telfx.
+    <fs_outtab>-adrnr = <fs_list>-adrnr.
+    <fs_outtab>-telf1 = <fs_list>-telf1.
+    <fs_outtab>-stcd1 = <fs_list>-stcd1.
+    <fs_outtab>-stcd2 = <fs_list>-stcd2.
+  ENDLOOP.
+
+
+
+" Degerlendirme Notu POPUP
+  DATA: gt_rate   TYPE sval OCCURS 0 WITH HEADER LINE,  "bu değişken sayesinde değer gireriz
+        gt_value  TYPE zfa_t_stici_mstr-rating, "rating alının zfa_t_stici_mstr tablosundan çektik ve gt_value değişkenin içine atık
+        gt_rating TYPE TABLE OF zfa_t_stici_mstr.
+
+  gt_rate-tabname = 'ZFA_T_STICI_MSTR'.
+  gt_rate-fieldname = 'RATING'.
+  gt_rate-fieldtext = text-001.
+  APPEND gt_rate.
+
+  CALL FUNCTION 'POPUP_GET_VALUES'
+    EXPORTING
+      popup_title     = 'Degerlendirme Notu'
+    TABLES
+      fields          = gt_rate
+    EXCEPTIONS
+      error_in_fields = 1
+      OTHERS          = 2.
+
+  IF gt_rate-value NE space.   "  <> eşit değildir
+    IF gt_rate-value LE 100.   " <= le
+      LOOP AT gt_list ASSIGNING FIELD-SYMBOL(<fs_list3>)
+        WHERE sel EQ abap_true.
+        <fs_list3>-rating = gt_rate-value.
+        APPEND INITIAL LINE TO gt_rating ASSIGNING
+          FIELD-SYMBOL(<fs_rating>).
+        <fs_rating>-partner = <fs_list3>-number. """""""
+        <fs_rating>-rating  = gt_rate-value.
+        <fs_rating>-erdat   = sy-datum.
+        <fs_rating>-erzeit  = sy-uzeit.
+        <fs_rating>-ernam   = sy-uname.
+      ENDLOOP.
+      MODIFY zfa_t_stici_mstr FROM TABLE gt_rating.
+      MESSAGE i010(zfa_message_class) DISPLAY LIKE 'E'.
+    ELSE.
+      MESSAGE i009(zfa_message_class) DISPLAY LIKE 'E'.
+    ENDIF.
+
+  ENDIF.
+
+ENDFORM.
+
+
+" ikinci alv
+FORM second_alv USING iv_index.
+
+  REFRESH: gt_list2. " eğer bunu kulanmasak hep ilk seçtiymiz indexsi gösteriri
+  CLEAR gv_index. " gv_indexi temizler birdaha seçebilelim diye
+
+
+  " index lifnr-kunnr degerini okur
+  READ TABLE gt_list ASSIGNING FIELD-SYMBOL(<fs_index>) INDEX iv_index.
+*  CHECK sy-subrc IS INITIAL. "sy-subrc sıfır ise yani dolu ise çalıştır demek (check sy-subrc eq 0.)
+  gv_index = iv_index.
+
+
+  SELECT bukrs
+         belnr
+         gjahr
+         buzei
+         hkont
+         lifnr
+         dmbtr
+    FROM bseg INTO TABLE gt_bseg
+    WHERE lifnr EQ <fs_index>-number. " lifnr seçilen number indexsine = ise
+
+
+*  IF sy-subrc IS INITIAL. "sy-subrc sıfır ise yani dolu ise çalıştır demek ( if sy-subrc eq 0.)
+    SELECT
+         belnr
+         gjahr
+         blart
+         budat
+      FROM bkpf INTO TABLE gt_bkpf
+      FOR ALL ENTRIES IN gt_bseg
+      WHERE bukrs EQ gt_bseg-bukrs
+      AND   belnr EQ gt_bseg-belnr
+      AND   gjahr EQ gt_bseg-gjahr.
+*    CHECK sy-subrc IS INITIAL.  "(check sy-subrc eq 0.)
+*  ENDIF.
+
+
+  SELECT
+       bukrs
+       belnr
+       gjahr
+       buzei
+       hkont
+       kunnr
+       dmbtr
+   FROM bseg INTO TABLE gt_bseg
+   WHERE kunnr EQ <fs_index>-number.  " kunnr seçilen number indexsine = ise
+*  IF sy-subrc IS INITIAL.
+  SELECT belnr
+        gjahr
+        blart
+        budat
+      FROM bkpf INTO TABLE gt_bkpf
+      FOR ALL ENTRIES IN gt_bseg
+      WHERE bukrs EQ gt_bseg-bukrs
+      AND   belnr EQ gt_bseg-belnr
+      AND   gjahr EQ gt_bseg-gjahr.
+*    CHECK sy-subrc IS INITIAL.
+*  ENDIF.
+
+
+
+  LOOP AT gt_bseg ASSIGNING FIELD-SYMBOL(<fs_bseg>).
+    APPEND INITIAL LINE TO gt_list2 ASSIGNING FIELD-SYMBOL(<fs_listtt>).
+    READ TABLE gt_bkpf ASSIGNING FIELD-SYMBOL(<fs_bkpf>)
+      WITH KEY belnr = <fs_bseg>-belnr
+               gjahr = <fs_bseg>-gjahr.
+*    IF sy-subrc IS INITIAL.
+      <fs_listtt>-bukrs = <fs_bseg>-bukrs.
+      <fs_listtt>-belnr = <fs_bseg>-belnr.
+      <fs_listtt>-gjahr = <fs_bseg>-gjahr.
+      <fs_listtt>-buzei = <fs_bseg>-buzei.
+      <fs_listtt>-blart = <fs_bkpf>-blart.
+      <fs_listtt>-budat = <fs_bkpf>-budat.
+      <fs_listtt>-hkont = <fs_bseg>-hkont.
+      <fs_listtt>-number = <fs_bseg>-lifnr.
+      <fs_listtt>-name1 = <fs_index>-name1.
+      <fs_listtt>-dmbtr = <fs_bseg>-dmbtr.
+*    ENDIF.
+  ENDLOOP.
+
+  PERFORM display_alv2.
+
+ENDFORM.

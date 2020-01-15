@@ -1,0 +1,80 @@
+* 3 tane tablo yaratık 2 tane structure 1 tane database tablo zli
+* zfa_s_satici_musteri(structure) bu tablo içine gerkli alanları yazdık satıcı ve müşterinin alanlar
+* zfa_s_satici_musteri(structure) tablosunda satıcı ve müşteri nolarını number olarak ortak alan ekledik
+* birinci alv zfa_s_satici_musteri(structure) tablosundan gelecek ve sel çoklu seçim olacak
+*
+* zfa_t_stici_mstr(datebase) tablosuna kaydet buttonu ile rating alanına değerlendirme notu ekliyoruz
+* ve 1.alvde onlar görünecek yani birinci alvde zfa_s_satici_musteri(structure) tablosundan
+* ve gty_adrc tablosundan ve zfa_t_stici_mstr(datebase) tablosundan veriler görünecek
+*
+* 1.alvnın her hangi satırına çift tıklarsak bize bseg ve bkpf tablosundan verilerini(eğer varsa) 2.alvde
+* gösterir tabi key alanları bağlantılı
+* 2.alvnın düzeni zfa_s_satici_musteri_alv2 tablosundan gelecek
+
+
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_ALV_HAFTA_IKI_TOP
+*&---------------------------------------------------------------------*
+
+TABLES : lfa1,
+         kna1,
+         lfb1.
+
+
+DATA: gt_outtab TYPE TABLE OF zfa_s_satici_musteri.    "ZFA_S_SATICI_MUSTERI stracture tablo oncede gerkli alnları ekledik
+
+
+TYPES : BEGIN OF gty_list,                             "sel kullanacaksak bunu kullanmak zorundayız
+          sel TYPE xfeld.
+        INCLUDE TYPE zfa_s_satici_musteri.
+TYPES : END OF gty_list.
+
+DATA : gt_list  TYPE TABLE OF gty_list,                 " sel olmasa gt_list  TYPE TABLE OF zfa_s_satici_musteri. olarka kullanırdık
+       gt_list2 TYPE TABLE OF zfa_s_satici_musteri_alv2."sel'le gerek yok direk böylede yazabiliriz
+
+
+DATA : gv_bukrs TYPE lfb1-bukrs, " select-optionlar
+       gv_lifnr TYPE lfa1-lifnr,
+       gv_kunnr TYPE kna1-kunnr.
+
+
+DATA : gs_layout          TYPE   slis_layout_alv,     " 1. ve 2. alv için ayn
+       gt_fieldcat        TYPE   slis_t_fieldcat_alv, " birinci alv için
+       gt_fieldcat_alv2   TYPE   slis_t_fieldcat_alv, " ikinci alv için
+       gv_answer(1)       TYPE c.
+
+
+TYPES: BEGIN OF gty_adrc,    "structure table
+        adrnr     TYPE adrc-addrnumber,
+        country   TYPE adrc-country,
+        city1     TYPE adrc-city1,
+        street    TYPE adrc-street,
+       END OF gty_adrc.
+
+DATA : gt_adrc TYPE TABLE OF gty_adrc,                " 1.alvde görünen 2. kısım ülke vb.. key alnları bağlantılı
+       gt_rate TYPE TABLE OF zfa_t_stici_mstr.        " rating alanına veri eklemek ve çekip göstermek için
+
+DATA :  gv_index TYPE sy-tabix.       " global index module read table icin
+
+
+TYPES : BEGIN OF gty_bseg,   "structure table
+    bukrs TYPE  bseg-bukrs,
+    belnr TYPE  bseg-belnr,
+    gjahr TYPE  bseg-gjahr,
+    buzei TYPE  bseg-buzei,
+    hkont TYPE  bseg-hkont,
+    lifnr TYPE  bseg-lifnr,
+    dmbtr TYPE  bseg-dmbtr,
+     END OF gty_bseg.
+
+DATA: gt_bseg TYPE TABLE OF gty_bseg.
+
+
+TYPES : BEGIN OF gty_bkpf,   "structure table
+    belnr TYPE bkpf-belnr,
+    gjahr TYPE bkpf-gjahr,
+    blart TYPE bkpf-blart,
+    budat TYPE bkpf-budat,
+  END OF gty_bkpf.
+
+DATA: gt_bkpf TYPE TABLE OF gty_bkpf.

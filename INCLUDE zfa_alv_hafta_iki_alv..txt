@@ -1,0 +1,106 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZFA_ALV_HAFTA_IKI_ALV
+*&---------------------------------------------------------------------*
+
+FORM display.
+
+  gs_layout-edit_mode = abap_true.            " alv'de değerleri değiştirebilmek
+  gs_layout-expand_fieldname = abap_true.
+  gs_layout-zebra = abap_true.
+  gs_layout-box_fieldname = 'SEL'.
+  gs_layout-colwidth_optimize = abap_true.
+
+  CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+    EXPORTING
+      i_structure_name       = 'ZFA_S_SATICI_MUSTERI'
+    CHANGING
+      ct_fieldcat            = gt_fieldcat
+    EXCEPTIONS
+      inconsistent_interface = 1
+      program_error          = 2
+      OTHERS                 = 3.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+  LOOP AT gt_fieldcat ASSIGNING FIELD-SYMBOL(<fs_fieldcat>).  " Colum renklendirme
+    CASE <fs_fieldcat>-fieldname.
+      WHEN 'BUKRS' OR 'NUMBER' OR 'RATING'.
+        <fs_fieldcat>-key = abap_true.
+    ENDCASE.
+  ENDLOOP.
+
+
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+      i_callback_program       = sy-repid
+      i_callback_pf_status_set = 'SET_PF_STATUS'
+      i_callback_user_command  = 'SET_USER_COMMAND'
+      is_layout                = gs_layout
+      it_fieldcat              = gt_fieldcat
+    TABLES
+      t_outtab                 = gt_list
+*   EXCEPTIONS
+*     PROGRAM_ERROR            = 1
+*     OTHERS                   = 2
+    .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+ENDFORM.
+
+
+
+
+
+
+
+FORM display_alv2.    "ikinci alv
+
+    gs_layout-zebra = abap_true.
+    gs_layout-colwidth_optimize = abap_true.
+
+  IF gt_list2 IS INITIAL.
+    MESSAGE i011(zfa_message_class) DISPLAY LIKE 'E'.
+
+  ELSEIF gt_list2 IS NOT INITIAL.
+
+    CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+      EXPORTING
+        i_structure_name       = 'ZFA_S_SATICI_MUSTERI_ALV2'
+      CHANGING
+        ct_fieldcat            = gt_fieldcat_alv2
+      EXCEPTIONS
+        inconsistent_interface = 1
+        program_error          = 2
+        OTHERS                 = 3.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+    LOOP AT gt_fieldcat_alv2 ASSIGNING FIELD-SYMBOL(<gt_fieldcat_alv2>).  " Colum renklendirme
+      CASE <gt_fieldcat_alv2>-fieldname.
+        WHEN 'BUKRS' OR 'NUMBER' OR 'NAME1'.
+          <gt_fieldcat_alv2>-key = abap_true.
+      ENDCASE.
+    ENDLOOP.
+
+
+    CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+      EXPORTING
+        i_callback_program = sy-repid
+        is_layout          = gs_layout
+        it_fieldcat        = gt_fieldcat_alv2
+      TABLES
+        t_outtab           = gt_list2
+*   EXCEPTIONS
+*       PROGRAM_ERROR      = 1
+*       OTHERS             = 2
+      .
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+  ENDIF.
+ENDFORM.
